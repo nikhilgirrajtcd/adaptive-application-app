@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+dunnhumby_Carbo-Loading**
+generatedata-3.3.1**
+mock-data-2.csv
