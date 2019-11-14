@@ -2,6 +2,8 @@
 
 import pandas as pd
 import datetime
+from sklearn.preprocessing import MinMaxScaler
+from sklearn import cluster
 
 class Stereo():
     def __init__(self):
@@ -13,22 +15,62 @@ class Stereo():
         users = self.loadUser()
         cates = self.loadCategory()
         sHis = self.loadShopHis()
-        traindata = self.geneTrainData(users,cates,sHis)
+        userids, traindata = self.geneTrainData(users,cates,sHis)
+        traindata = self.preprocess(traindata)
+        #print(traindata)
+        #TODO: how to choose cluster number
+        k_means = cluster.KMeans(n_clusters=3)
+        k_means.fit(traindata)
+        print(k_means.labels_)
+        similiarUsers = {}
+        for i,v in enumerate(k_means.labels_):
+            if v not in similiarUsers:
+                similiarUsers[v] = []
+            similiarUsers[v].append(userids[i])
+        print(similiarUsers)
         return
 
+
+    def preprocess(self, x):
+        scaler = MinMaxScaler()
+        return scaler.fit_transform(x)
 
     def geneTrainData(self, users, categories, shopHis):
         # generate train data from source dataset
         # train data structure: [
         # [Age, Gender, cate1_shopping_amount,cate2_shopping_amount,...],
         # ]
-        x = []
-        userid = []
-        usernum = len(users)
-        for userid in users['id']:
-            userid.append(i)
-            X
-        print(x)
+        userids = users['id']
+        x = users[['Sex','YOB']]
+        # find all categories
+        catemap = {}
+        for idx,rec in categories.iterrows():
+            catemap[rec['Product']] = rec['Category']
+        # history map {userid:{cate1:count}}
+        hismap = {}
+        cates = list(set(catemap.values()))
+        for userid in userids:
+            hismap[userid] = {}
+            for cate in cates:
+                hismap[userid][cate] = 0
+        for idx,rec in shopHis.iterrows():
+            userid = rec['User']
+            cate = catemap[rec['Product']]
+            hismap[userid][cate] += 1
+        shopCount = []
+        for userid in userids:
+            userCount = []
+            for ct in cates:
+                userCount.append(hismap[userid][ct])
+            shopCount.append(userCount)
+        shopFrame = pd.DataFrame(shopCount, columns = list(cates))
+        x = x.join(shopFrame)
+        #print(x)
+        return userids, x
+
+
+
+
 
     def loadShopHis(self):
         # load users' shopping history
