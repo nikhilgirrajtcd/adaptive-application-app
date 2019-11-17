@@ -2,12 +2,21 @@
 
 import pandas as pd
 import datetime
+import operator
+import json
 from sklearn.preprocessing import MinMaxScaler
 from sklearn import cluster
+
+class ItemsHis():
+    def __init__(self, itemid, times):
+        self.id = itemid
+        self.times = times
 
 class Stereo():
     def __init__(self):
         self.gendermap = {"M":1,"F":2}
+        self.modelmap = None
+        self.modelf = "stereotype.model"
         return
 
     def trainModel(self):
@@ -16,8 +25,8 @@ class Stereo():
         cates = self.loadCategory()
         sHis = self.loadShopHis()
         userids, traindata = self.geneTrainData(users,cates,sHis)
+        print(traindata)
         traindata = self.preprocess(traindata)
-        #print(traindata)
         #TODO: how to choose cluster number
         k_means = cluster.KMeans(n_clusters=3)
         k_means.fit(traindata)
@@ -25,11 +34,12 @@ class Stereo():
         similiarUsers = {}
         for i,v in enumerate(k_means.labels_):
             if v not in similiarUsers:
-                similiarUsers[v] = []
-            similiarUsers[v].append(userids[i])
-        print(similiarUsers)
+                similiarUsers[int(v)] = []
+            similiarUsers[int(v)].append(int(userids[i]))
+        with open(self.modelf,"w") as f:
+            f.write(json.dumps(similiarUsers))
+        self.modelmap = similiarUsers
         return
-
 
     def preprocess(self, x):
         scaler = MinMaxScaler()
@@ -68,10 +78,6 @@ class Stereo():
         #print(x)
         return userids, x
 
-
-
-
-
     def loadShopHis(self):
         # load users' shopping history
         # I think we can just load history of past 6 months in case
@@ -92,7 +98,47 @@ class Stereo():
         # load category info
         return pd.read_csv("data-gen/out/gen-data-item-categories.csv")
 
+    def loadModel(self):
+        with open(self.modelf, "r") as f:
+            self.modelmap = json.loads(f.read())
+        print(self.modelmap)
+
+    def getItemMap(self):
+        return
+
+    def predict(self, userid):
+        groupids = None
+        for k in self.modelmap:
+            if userid in self.modelmap[k]:
+                groupids = self.modelmap[k]
+                break
+        print(groupids)
+        if groupids == None:
+            return []
+        histories = self.loadShopHis()
+        needhis = histories[["User","Product"]]
+        recommend = {}
+        for uid in groupids:
+            cns = needhis[needhis.User == uid]["Product"].value_counts()
+            for idx,im in cns.items():
+                if idx not in recommend:
+                    recommend[int(idx)] = 0
+                recommend[int(idx)] += int(im)
+        sortedrec = sorted(recommend.items(), key=operator.itemgetter(1),reverse=True)
+        bought = needhis[needhis.User == userid]["Product"].unique().tolist()
+        predictRes = []
+        for (pid, time) in sortedrec:
+            if pid not in bought:
+                predictRes.append(pid)
+                if len(predictRes) > 10:
+                    return predictRes
+        return predictRes
+
+    
+        
 
 if __name__ == "__main__":
     s = Stereo()
-    s.trainModel()
+    #s.trainModel()
+    s.loadModel()
+    print(s.predict(10014))
