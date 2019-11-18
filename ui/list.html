@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<head>
+  <link rel="stylesheet" href="style.css" type="text/css">
+  <script src = "listJS.js"></script>
+  <script>
+      window.onload = function(){
+          createList();
+      }
+  </script>
+</head>
+<div class = "container">
+    <div id = "listHeader" class = "header">
+        <h2>Shopping List</h2>
+    </div>
+    <table id = list>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Size</th>
+                <th>Price</th>
+                <th>Not Now</th>
+                <th>Not Interested</th>
+            </tr>
+        </thead>
+        <tbody id = "listBody"></tbody>
+    </table>
+</div>

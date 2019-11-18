@@ -1,0 +1,41 @@
+
+.itemHeader{
+    background: blue;
+}
+th,td{
+    padding:15px;
+    font-size:18px;
+}
+
+table{
+    width:100%;
+    border-collapse: collapse;
+}
+.container {
+    /* background-color: lightblue; */
+}
+table tbody tr:nth-child(odd){
+    background: #f9f9f9
+}
+tbody tr:hover {
+    background:#ddd !important;
+}
+tbody tr.bought {
+    background:lightgreen !important;
+    color: #fff;
+    text-decoration: line-through;
+}
+tbody tr.ignored {
+    background: lightblue !important;
+}
+tbody tr.rejected {
+    background: lightcoral !important;
+}
+thead tr{
+    border-bottom: 1px solid black;
+}
+.header{
+    /* background-color: lightblue; */
+    /* color: white; */
+    text-align: center;
+}
