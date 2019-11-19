@@ -35,13 +35,14 @@ class Stereo():
         start = int(numberOfUser / 50)
         if start < 2:
             start = 2
-        end = int(numberOfUser / 10)
+        end = int(numberOfUser / 5)
         for n_clusters in range(start,end):
             k_means = cluster.KMeans(n_clusters=n_clusters)
             cluster_labels = k_means.fit_predict(traindata)
             silhouette_avg = silhouette_score(traindata, cluster_labels)
             if silhouette_avg > good_n_cluster_score:
                 good_n_cluster = n_clusters
+                good_n_cluster_score = silhouette_avg
             print("For n_clusters =", n_clusters,
                 "The average silhouette_score is :", silhouette_avg)
 
@@ -157,6 +158,6 @@ class Stereo():
 
 if __name__ == "__main__":
     s = Stereo()
-    #s.trainModel()
-    s.loadModel()
-    print(s.predict(10014))
+    s.trainModel()
+    #s.loadModel()
+    #print(s.predict(10014))
