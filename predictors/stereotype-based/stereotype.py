@@ -123,7 +123,11 @@ class Stereo():
         print(self.modelmap)
 
     def getItemMap(self):
-        return
+        cates = self.loadCategory()
+        itemmap = {} # id : {"name":"","cate":""}
+        for idx,rec in cates.iterrows():
+            itemmap[rec['Product']] = {"name":rec["Item"],"category":rec["Category"],"product":rec["Product"]}
+        return itemmap
 
     def predict(self, userid):
         groupids = None
@@ -131,7 +135,7 @@ class Stereo():
             if userid in self.modelmap[k]:
                 groupids = self.modelmap[k]
                 break
-        print(groupids)
+        #print(groupids)
         if groupids == None:
             return []
         histories = self.loadShopHis()
@@ -149,15 +153,22 @@ class Stereo():
         for (pid, time) in sortedrec:
             if pid not in bought:
                 predictRes.append(pid)
-                if len(predictRes) > 10:
-                    return predictRes
-        return predictRes
+            if len(predictRes) > 10:
+                break
+        res = {
+            "user":userid,
+            "predict":[],
+        }
+        itmap = self.getItemMap()
+        for i in predictRes:
+            res['predict'].append(itmap[i])
+        return res
 
     
         
 
 if __name__ == "__main__":
     s = Stereo()
-    s.trainModel()
-    #s.loadModel()
-    #print(s.predict(10014))
+    #s.trainModel()
+    s.loadModel()
+    print(s.predict(10014))
