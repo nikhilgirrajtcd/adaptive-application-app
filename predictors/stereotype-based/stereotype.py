@@ -5,6 +5,7 @@ import datetime
 import operator
 import json
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn import cluster
 
 class ItemsHis():
@@ -25,11 +26,28 @@ class Stereo():
         cates = self.loadCategory()
         sHis = self.loadShopHis()
         userids, traindata = self.geneTrainData(users,cates,sHis)
-        print(traindata)
         traindata = self.preprocess(traindata)
         #TODO: how to choose cluster number
-        k_means = cluster.KMeans(n_clusters=3)
-        k_means.fit(traindata)
+        numberOfUser = len(users)
+        print(numberOfUser)
+        good_n_cluster = 0
+        good_n_cluster_score = 0
+        start = int(numberOfUser / 50)
+        if start < 2:
+            start = 2
+        end = int(numberOfUser / 10)
+        for n_clusters in range(start,end):
+            k_means = cluster.KMeans(n_clusters=n_clusters)
+            cluster_labels = k_means.fit_predict(traindata)
+            silhouette_avg = silhouette_score(traindata, cluster_labels)
+            if silhouette_avg > good_n_cluster_score:
+                good_n_cluster = n_clusters
+            print("For n_clusters =", n_clusters,
+                "The average silhouette_score is :", silhouette_avg)
+
+        print("ideal number of cluster is", good_n_cluster)
+        k_means = cluster.KMeans(n_clusters=good_n_cluster)
+        cluster_labels = k_means.fit_predict(traindata)
         print(k_means.labels_)
         similiarUsers = {}
         for i,v in enumerate(k_means.labels_):
